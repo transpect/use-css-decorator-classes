@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title></title>
+    <style type="text/css">
+      .bold{
+        font-weight:bold;
+      }
+      .pink{
+        color:#fab;
+      }</style>
+  </head>
+  <body>
+    <p class="p_-_bold_-_fancy">p_-_fancy bold</p>
+    <p class="p_-_fancy_-_bold">p_-_fancy bold</p>
+    <p class="p_-_bold_-_fancy_-_bold">p_-_fancy bold</p>
+    <p class="p_-_bold_-_fancy_-_schmancy">p_-_fancy_-_schmancy bold</p>
+    <p class="p_-_fancy_-_bold_-_schmancy">p_-_fancy_-_schmancy bold</p>
+    <p class="p_-_bolder">p_-_bolder <span class="ch_-_pink">ch pink</span></p>
+    <div class="_-_bold_-_pink_-_">bold pink</div>
+    <p class="pink bold_-_fancy">pink bold_-_fancy</p><!-- bold is not a decorator when it’s at the beginning of a token -->
+    <p class="pink_-_bold bold_-_fancy">pink bold bold_-_fancy</p>
+  </body>
+</html>
