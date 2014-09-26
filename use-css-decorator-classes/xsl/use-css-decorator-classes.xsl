@@ -36,33 +36,30 @@
           <xsl:for-each select="tokenize(., '\s+')">
             <xsl:variable name="list-from-single-token" as="element(items)">
               <items>
-                <xsl:analyze-string select="." regex="{$decorator-class-regex}">
-                  <xsl:matching-substring>
-                    <match>
-                      <xsl:value-of select="regex-group(1)"/>
-                    </match>
-                  </xsl:matching-substring>
-                  <xsl:non-matching-substring>
-                    <non-match>
-                      <xsl:value-of select="."/>
-                    </non-match>
-                  </xsl:non-matching-substring>
-                </xsl:analyze-string>
+                <xsl:for-each select="tokenize(., '_-_')">
+                  <xsl:choose>
+                    <xsl:when test="position() eq 1">
+                      <!-- first token is base name, not decorator -->
+                      <non-match>
+                        <xsl:value-of select="."/>
+                      </non-match>
+                    </xsl:when>
+                    <xsl:when test="matches(., $decorator-class-regex)">
+                      <match>
+                        <xsl:value-of select="."/>
+                      </match>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <non-match>
+                        <xsl:value-of select="."/>
+                      </non-match>
+                    </xsl:otherwise>
+                  </xsl:choose>
+                </xsl:for-each>
               </items>
             </xsl:variable>
-            <xsl:variable name="corrected-list" as="element(*)*">
-              <xsl:apply-templates select="$list-from-single-token/*" mode="correct-for-first-non-match"/>  
-            </xsl:variable>
-            <xsl:sequence select="replace(
-                                    replace(
-                                      string-join($corrected-list[self::non-match], ''),
-                                      '(_-_)+',
-                                      '_-_'
-                                    ),
-                                    '_-_$',
-                                    ''
-                                  ), 
-                                  $corrected-list[self::match]"/>
+            <xsl:sequence select="string-join($list-from-single-token/non-match[normalize-space()], '_-_'),
+                                  $list-from-single-token/match"/>
           </xsl:for-each>
         </xsl:variable>
         <xsl:attribute name="class" select="distinct-values($complete-list[normalize-space()])" separator=" "/>
@@ -73,13 +70,7 @@
     </xsl:choose>
   </xsl:template>
   
-  <xsl:template match="*[position() = 1]" mode="correct-for-first-non-match">
-    <non-match position="{position()}">
-      <xsl:value-of select="concat(.,'_-_')"/>
-    </non-match>
-  </xsl:template>
-    
-  <xsl:template match="* | @*" mode="correct-for-first-non-match #default">
+  <xsl:template match="* | @*" mode="#default">
     <xsl:copy>
       <xsl:apply-templates select="@*, node()" mode="#current"/>
     </xsl:copy>
