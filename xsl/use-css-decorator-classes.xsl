@@ -24,7 +24,7 @@
                 )
                 else ()"/>
     <xsl:next-match>
-      <xsl:with-param name="decorator-class-regex" tunnel="yes" as="xs:string" select="$decorator-regex"/>
+      <xsl:with-param name="decorator-class-regex" tunnel="yes" as="xs:string?" select="$decorator-regex"/>
     </xsl:next-match>
   </xsl:template>
 
