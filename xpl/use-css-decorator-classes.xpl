@@ -42,6 +42,11 @@
 
   <p:option name="debug" required="false" select="'no'"/>
   <p:option name="debug-dir-uri" required="false" select="'debug'"/>
+  <p:option name="discard-undeclared-styles" select="'no'" required="false">
+    <p:documentation xmlns="http://www.w3.org/1999/xhtml">
+      <p>Whether to also discard class attributes that, after splitting the decorators, are not declared in the CSS.</p>
+  </p:documentation>
+  </p:option>
 
   <p:import href="http://xmlcalabash.com/extension/steps/library-1.0.xpl" />
   <p:import href="http://transpect.le-tex.de/xproc-util/store-debug/store-debug.xpl"/>
@@ -62,6 +67,7 @@
     <p:input port="parameters">
       <p:empty/>
     </p:input>
+    <p:with-param name="discard-undeclared-styles" select="$discard-undeclared-styles"/>
   </p:xslt>
   
   <letex:store-debug pipeline-step="use-css-decorator-classes/use-css-decorator-classes" extension="xhtml">

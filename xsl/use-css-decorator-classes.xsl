@@ -7,72 +7,94 @@
   xpath-default-namespace="http://www.w3.org/1999/xhtml"
   xmlns="http://www.w3.org/1999/xhtml"
   version="2.0">
-  
-  <xsl:template match="/">
-    <xsl:variable name="raw-selectors" as="xs:string*"
-      select="collection()/css:css/css:ruleset/css:selector[matches(@raw-selector, '^\.\i[-_a-z\d]+', 'i')]/@raw-selector"/>
-    <xsl:variable name="decorator-regex" as="xs:string?"
-      select="if (exists($raw-selectors)) then 
-                concat(
-                  '(',
-                  string-join(
-                    for $s in $raw-selectors
-                    return substring($s, 2),
-                    '|'
-                  ),
-                  ')(_-_|$)'
-                )
-                else ()"/>
-    <xsl:next-match>
-      <xsl:with-param name="decorator-class-regex" tunnel="yes" as="xs:string?" select="$decorator-regex"/>
-    </xsl:next-match>
-  </xsl:template>
+
+  <xsl:param name="discard-undeclared-styles" select="'no'"/>
+
+  <!-- We need to use the calculated XPath expressions in a generated stylesheet to match the selectors
+    if we want to do it exactly -->
+  <xsl:key name="raw-selector" match="css:selector" use="tokenize(@raw-selector, '\s+')"/>
+
+  <xsl:variable name="css" select="(collection()[css:css])[1]" as="document-node(element(css:css))"/>
 
   <xsl:template match="@class">
-    <xsl:param name="decorator-class-regex" as="xs:string?" tunnel="yes"/>
-    <xsl:choose>
-      <xsl:when test="$decorator-class-regex">
-        <xsl:variable name="complete-list" as="xs:string*">
-          <xsl:for-each select="tokenize(., '\s+')">
-            <xsl:variable name="list-from-single-token" as="element(items)">
-              <items>
-                <xsl:for-each select="tokenize(., '_-_')">
-                  <xsl:choose>
-                    <xsl:when test="position() eq 1">
-                      <!-- first token is base name, not decorator -->
-                      <non-match>
-                        <xsl:value-of select="."/>
-                      </non-match>
-                    </xsl:when>
-                    <xsl:when test="matches(., $decorator-class-regex)">
-                      <match>
-                        <xsl:value-of select="."/>
-                      </match>
-                    </xsl:when>
-                    <xsl:otherwise>
-                      <non-match>
-                        <xsl:value-of select="."/>
-                      </non-match>
-                    </xsl:otherwise>
-                  </xsl:choose>
-                </xsl:for-each>
-              </items>
-            </xsl:variable>
-            <xsl:sequence select="string-join($list-from-single-token/non-match[normalize-space()], '_-_'),
-                                  $list-from-single-token/match"/>
+    <xsl:variable name="elt-name" as="xs:string" select="name(..)"/>
+    <xsl:variable name="complete-list" as="element(items)*">
+      <xsl:for-each select="tokenize(., '\s+')">
+        <items>
+          <xsl:variable name="pre-tilde-split" select="." as="xs:string"/>
+          <xsl:for-each select="tokenize(., '_-_')[normalize-space()]">
+            <xsl:variable name="matching-selectors" as="element(css:selector)*"
+              select="key('raw-selector', (concat('.', .), concat($elt-name, '.', .)), $css)"/>
+            <xsl:choose>
+              <xsl:when test="position() eq 1 
+                              and not(starts-with($pre-tilde-split, '_-_'))">
+                <!-- first token is base name, not decorator -->
+                <xsl:choose>
+                  <xsl:when test="$discard-undeclared-styles = 'no'
+                                  or
+                                  exists($matching-selectors)">
+                    <!-- The base class. Even if it matches a class declaration, we treat it as a
+                      'non-match' which means other non-matching classes of this token will be appended
+                      to this base name. If it doesn’t match a class declaration, it will be discarded only
+                      if $discard-undeclared-styles = 'yes' -->
+                    <non-match>
+                      <xsl:value-of select="."/>
+                    </non-match>    
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <discard>
+                      <xsl:value-of select="."/>
+                    </discard>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:when>
+              <xsl:when test="exists($matching-selectors)">
+                <match>
+                  <xsl:value-of select="."/>
+                </match>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:choose>
+                  <xsl:when test="$discard-undeclared-styles = 'no'">
+                    <non-match>
+                      <xsl:value-of select="."/>
+                    </non-match>    
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <discard>
+                      <xsl:value-of select="."/>
+                    </discard>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:otherwise>
+            </xsl:choose>
           </xsl:for-each>
-        </xsl:variable>
-        <xsl:attribute name="class" select="distinct-values($complete-list[normalize-space()])" separator=" "/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:next-match/>
-      </xsl:otherwise>
-    </xsl:choose>
+        </items>
+      </xsl:for-each>
+    </xsl:variable>
+    <xsl:variable name="class" as="xs:string" 
+                  select="string-join(
+                            distinct-values(
+                              (
+                                for $i in $complete-list
+                                return string-join($i/non-match[normalize-space()], '_-_'),
+                                $complete-list/match,
+                                ''
+                              )
+                            ),
+                            ' '
+                          )"/>
+    <xsl:if test="matches($class, '\S')">
+      <xsl:attribute name="class" select="normalize-space($class)"/>
+    </xsl:if>
+    <xsl:if test="$complete-list/discard">
+      <xsl:processing-instruction name="discard-classes" select="$complete-list/discard"/>
+    </xsl:if>
   </xsl:template>
   
   <xsl:template match="* | @*" mode="#default">
     <xsl:copy>
-      <xsl:apply-templates select="@*, node()" mode="#current"/>
+      <xsl:apply-templates select="@* except @class, @class, node()" mode="#current"/>
     </xsl:copy>
   </xsl:template>
   
