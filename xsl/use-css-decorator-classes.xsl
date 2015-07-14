@@ -97,5 +97,24 @@
       <xsl:apply-templates select="@* except @class, @class, node()" mode="#current"/>
     </xsl:copy>
   </xsl:template>
-  
+
+  <xsl:template match="html:span[@class]" mode="#default">
+    <xsl:variable name="transformed" as="item()*">
+      <xsl:apply-templates select="@class" mode="#current"/>
+    </xsl:variable>
+    <xsl:choose>
+      <xsl:when test="empty($transformed[. instance of attribute(class)]) 
+                      and (every $a in (@* except @class) satisfies ($a/name() = 'srcpath'))">
+        <xsl:apply-templates mode="#current"/>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:copy copy-namespaces="no">
+          <xsl:apply-templates select="@* except @class" mode="#current"/>
+          <xsl:sequence select="$transformed"/>
+          <xsl:apply-templates mode="#current"/>
+        </xsl:copy>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
 </xsl:stylesheet>
