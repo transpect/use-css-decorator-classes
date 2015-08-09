@@ -93,7 +93,9 @@
   </xsl:template>
   
   <xsl:template match="* | @*" mode="#default">
+    <xsl:param name="srcpath" as="attribute(srcpath)?"/>
     <xsl:copy>
+      <xsl:copy-of select="$srcpath"/>
       <xsl:apply-templates select="@* except @class, @class, node()" mode="#current"/>
     </xsl:copy>
   </xsl:template>
@@ -105,7 +107,9 @@
     <xsl:choose>
       <xsl:when test="empty($transformed[. instance of attribute(class)]) 
                       and (every $a in (@* except @class) satisfies ($a/name() = 'srcpath'))">
-        <xsl:apply-templates mode="#current"/>
+        <xsl:apply-templates mode="#current">
+          <xsl:with-param name="srcpath" select="@srcpath"/>
+        </xsl:apply-templates>
       </xsl:when>
       <xsl:otherwise>
         <xsl:copy copy-namespaces="no">
