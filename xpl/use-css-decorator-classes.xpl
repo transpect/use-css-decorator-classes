@@ -3,7 +3,7 @@
   xmlns:p="http://www.w3.org/ns/xproc" 
   xmlns:c="http://www.w3.org/ns/xproc-step"  
   xmlns:cx="http://xmlcalabash.com/ns/extensions"
-  xmlns:letex="http://www.le-tex.de/namespace"
+  xmlns:tr="http://transpect.io"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
   xmlns:css="http://www.w3.org/1996/css"
   xmlns:html="http://www.w3.org/1999/xhtml"
@@ -49,8 +49,8 @@
   </p:option>
 
   <p:import href="http://xmlcalabash.com/extension/steps/library-1.0.xpl" />
-  <p:import href="http://transpect.le-tex.de/xproc-util/store-debug/store-debug.xpl"/>
-  <p:import href="http://transpect.le-tex.de/css-expand/xpl/css.xpl"/>
+  <p:import href="http://transpect.io/xproc-util/store-debug/xpl/store-debug.xpl"/>
+  <p:import href="http://transpect.io/css-tools/xpl/css.xpl"/>
 
   <css:parse name="parse"/>
 
@@ -70,9 +70,9 @@
     <p:with-param name="discard-undeclared-styles" select="$discard-undeclared-styles"/>
   </p:xslt>
   
-  <letex:store-debug pipeline-step="use-css-decorator-classes/use-css-decorator-classes" extension="xhtml">
+  <tr:store-debug pipeline-step="use-css-decorator-classes/use-css-decorator-classes" extension="xhtml">
     <p:with-option name="active" select="$debug"/>
     <p:with-option name="base-uri" select="$debug-dir-uri"/>
-  </letex:store-debug>
+  </tr:store-debug>
 
 </p:declare-step>

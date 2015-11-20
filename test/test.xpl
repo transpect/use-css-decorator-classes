@@ -3,7 +3,7 @@
   xmlns:p="http://www.w3.org/ns/xproc" 
   xmlns:c="http://www.w3.org/ns/xproc-step"  
   xmlns:cx="http://xmlcalabash.com/ns/extensions"
-  xmlns:letex="http://www.le-tex.de/namespace"
+  xmlns:tr="http://transpect.io"
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform" 
   xmlns:css="http://www.w3.org/1996/css"
   xmlns:html="http://www.w3.org/1999/xhtml"
@@ -20,7 +20,7 @@
   <p:option name="debug-dir-uri" required="false" select="resolve-uri('debug')"/>
 
   <p:import href="http://xmlcalabash.com/extension/steps/library-1.0.xpl"/>
-  <p:import href="http://transpect.le-tex.de/use-css-decorator-classes/xpl/use-css-decorator-classes.xpl"/>
+  <p:import href="http://transpect.io/use-css-decorator-classes/xpl/use-css-decorator-classes.xpl"/>
   
   <css:use-decorator-classes name="map-styles">
     <p:with-option name="debug" select="$debug"/>
